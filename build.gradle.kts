@@ -19,14 +19,25 @@ repositories {
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-webmvc")
-    compileOnly("org.projectlombok:lombok")
-    developmentOnly("org.springframework.boot:spring-boot-devtools")
-    annotationProcessor("org.projectlombok:lombok")
-    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
-    testCompileOnly("org.projectlombok:lombok")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testAnnotationProcessor("org.projectlombok:lombok")
+    dependencies {
+        implementation("org.springframework.boot:spring-boot-starter-validation")
+
+        implementation("org.springframework.boot:spring-boot-starter-web")
+        testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+        implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0")
+
+        implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+        runtimeOnly("com.h2database:h2")
+        developmentOnly("org.springframework.boot:spring-boot-h2console")
+
+        testImplementation("org.springframework.boot:spring-boot-starter-test")
+        testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+        developmentOnly("org.springframework.boot:spring-boot-devtools")
+
+        compileOnly("org.projectlombok:lombok")
+        annotationProcessor("org.projectlombok:lombok")
+    }
 }
 
 tasks.withType<Test> {
