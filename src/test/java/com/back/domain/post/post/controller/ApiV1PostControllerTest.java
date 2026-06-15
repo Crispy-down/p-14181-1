@@ -201,9 +201,14 @@ public class ApiV1PostControllerTest {
     void t3() throws Exception {
         int id = 1;
 
+        Post post = postService.findById(id).get(); // 글 id 기반 글 가져옴
+        Member actor = post.getAuthor(); // 글안에 있는 멤버를 가져옴
+        String actorApiKey = actor.getApiKey(); // API_KEY 가져옴
+
         ResultActions resultActions = mvc
                 .perform(
                         delete("/api/v1/posts/" + id)
+                                .header("Authorization", "Bearer " + actorApiKey)
                 )
                 .andDo(print());
 

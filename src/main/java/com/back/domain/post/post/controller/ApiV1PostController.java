@@ -53,8 +53,19 @@ public class ApiV1PostController {
     @DeleteMapping("/{id}")
     @Transactional
     @Operation(summary = "삭제")
-    public RsData<Void> delete(@PathVariable int id) {
+    public RsData<Void> delete(
+            @PathVariable int id,
+            @NotBlank @Size(min = 30, max = 50)
+            @RequestHeader("Authorization") String authorization
+    ) {
+        String apiKey = authorization.replace("Bearer ","");
+
+        Member actor = memberService.findByApiKey(apiKey).orElseThrow(
+                () -> new ServiceException("401-1", "존재하지 않는 apiKey 입니다."));
+
         Post post = postService.findById(id).get();
+
+        if(!actor.equals(post.getAuthor())) throw new ServiceException("403-1", "해당 권한이 존재하지 않습니다.");
 
         postService.delete(post);
 
@@ -79,8 +90,11 @@ public class ApiV1PostController {
     @Transactional
     @Operation(summary = "작성")
     public RsData<PostDto> write(
-            @Valid @RequestBody PostWriteReqBody reqBody,
-            @NotBlank @Size(min = 30, max = 50) @RequestHeader("Authorization") String authorization
+            @Valid @RequestBody
+            PostWriteReqBody reqBody,
+            @NotBlank @Size(min = 30, max = 50)
+            @RequestHeader("Authorization")
+            String authorization
     ) {
         String apiKey = authorization.replace("Bearer ", "");
 
