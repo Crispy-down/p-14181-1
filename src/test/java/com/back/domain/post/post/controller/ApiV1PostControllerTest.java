@@ -19,6 +19,8 @@ import java.util.List;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.back.domain.member.member.entity.Member;
+import com.back.domain.member.member.service.MemberService;
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -34,9 +36,12 @@ public class ApiV1PostControllerTest {
     @Test
     @DisplayName("글 작성")
     void t1() throws Exception {
+        Member actor = memberService.findByUsername("user1").get();
+        String actorApiKey = actor.getApiKey();
+
         ResultActions resultActions = mvc
                 .perform(
-                        post("/api/v1/posts")
+                        post("/api/v1/posts?apiKey=" + actorApiKey)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -266,4 +271,6 @@ public class ApiV1PostControllerTest {
                     .andExpect(jsonPath("$[%d].content".formatted(i)).value(post.getContent()));
         }
     }
+    @Autowired
+    private MemberService memberService;
 }
