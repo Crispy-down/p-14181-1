@@ -31,6 +31,8 @@ public class ApiV1PostControllerTest {
     private MockMvc mvc;
     @Autowired
     private PostService postService;
+    @Autowired
+    private MemberService memberService;
 
 
     @Test
@@ -41,7 +43,8 @@ public class ApiV1PostControllerTest {
 
         ResultActions resultActions = mvc
                 .perform(
-                        post("/api/v1/posts?apiKey=" + actorApiKey)
+                        post("/api/v1/posts")
+                                .header("Authorization", "Bearer " + actorApiKey)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -72,9 +75,13 @@ public class ApiV1PostControllerTest {
     @Test
     @DisplayName("글 작성, without title")
     void t7() throws Exception {
+        Member actor = memberService.findByUsername("user1").get();
+        String actorApiKey = actor.getApiKey();
+
         ResultActions resultActions = mvc
                 .perform(
                         post("/api/v1/posts")
+                                .header("Authorization", "Bearer " + actorApiKey)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -99,9 +106,13 @@ public class ApiV1PostControllerTest {
     @Test
     @DisplayName("글 작성, without content")
     void t8() throws Exception {
+        Member actor = memberService.findByUsername("user1").get();
+        String actorApiKey = actor.getApiKey();
+
         ResultActions resultActions = mvc
                 .perform(
                         post("/api/v1/posts")
+                                .header("Authorization", "Bearer " + actorApiKey)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -126,6 +137,9 @@ public class ApiV1PostControllerTest {
     @Test
     @DisplayName("글 작성, with wrong json syntax")
     void t9() throws Exception {
+        Member actor = memberService.findByUsername("user1").get();
+        String actorApiKey = actor.getApiKey();
+
 
         String wrongJsonBody = """
                 {
@@ -136,6 +150,7 @@ public class ApiV1PostControllerTest {
         ResultActions resultActions = mvc
                 .perform(
                         post("/api/v1/posts")
+                                .header("Authorization", "Bearer " + actorApiKey)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(wrongJsonBody)
                 )
@@ -155,9 +170,14 @@ public class ApiV1PostControllerTest {
     void t2() throws Exception {
         int id = 1;
 
+        Post post = postService.findById(id).get();
+        Member actor = post.getAuthor();
+        String actorApiKey = actor.getApiKey();
+
         ResultActions resultActions = mvc
                 .perform(
                         put("/api/v1/posts/" + id)
+                                .header("Authorization", "Bearer " + actorApiKey)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -271,6 +291,5 @@ public class ApiV1PostControllerTest {
                     .andExpect(jsonPath("$[%d].content".formatted(i)).value(post.getContent()));
         }
     }
-    @Autowired
-    private MemberService memberService;
+
 }
