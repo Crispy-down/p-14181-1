@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 
 @Component
-@RequestScope
 @RequiredArgsConstructor
 public class Rq {
     private final MemberService memberService;
@@ -19,7 +18,7 @@ public class Rq {
         String headerAuthorization = req.getHeader("Authorization");
 
         if (headerAuthorization == null || headerAuthorization.isBlank())
-            throw new ServiceException("401-1", "Authorization 헤더가 존재하지 않습니다.");
+            throw new ServiceException("401-1", "로그인 후 이용해주세요.");
 
         if (!headerAuthorization.startsWith("Bearer "))
             throw new ServiceException("401-2", "Authorization 헤더가 Bearer 형식이 아닙니다.");
