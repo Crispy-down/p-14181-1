@@ -94,7 +94,8 @@ public class ApiV1MemberControllerTest {
                 .andExpect(jsonPath("$.data.item.createDate").value(Matchers.startsWith(member.getCreateDate().toString().substring(0, 20))))
                 .andExpect(jsonPath("$.data.item.modifyDate").value(Matchers.startsWith(member.getModifyDate().toString().substring(0, 20))))
                 .andExpect(jsonPath("$.data.item.name").value(member.getName()))
-                .andExpect(jsonPath("$.data.apiKey").value(member.getApiKey()));
+                .andExpect(jsonPath("$.data.apiKey").value(member.getApiKey()))
+                .andExpect(jsonPath("$.data.accessToken").isNotEmpty());
 
         resultActions.andExpect(
                 result -> {
@@ -102,6 +103,11 @@ public class ApiV1MemberControllerTest {
                     assertThat(apiKeyCookie.getValue()).isEqualTo(member.getApiKey());
                     assertThat(apiKeyCookie.getPath()).isEqualTo("/"); // PATH 재설정
                     assertThat(apiKeyCookie.isHttpOnly()).isTrue(); // 클라이언트에서 스크립트로 조작할 수 없다
+
+                    Cookie accessTokenCookie = result.getResponse().getCookie("accessToken");
+                    assertThat(accessTokenCookie.getValue()).isNotBlank();
+                    assertThat(accessTokenCookie.getPath()).isEqualTo("/");
+                    assertThat(apiKeyCookie.isHttpOnly()).isTrue();
                 }
         );
     }
