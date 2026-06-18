@@ -16,8 +16,7 @@ import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.validation.annotation.Validated;
-import com.back.global.exception.ServiceException;
+
 
 import java.util.List;
 
@@ -28,6 +27,7 @@ import java.util.List;
 @SecurityRequirement(name = "bearerAuth")
 public class ApiV1PostController {
     private final PostService postService;
+    private final MemberService memberService;
     private final Rq rq;
 
     @GetMapping

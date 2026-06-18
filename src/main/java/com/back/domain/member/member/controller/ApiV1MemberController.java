@@ -2,6 +2,7 @@ package com.back.domain.member.member.controller;
 
 
 import com.back.domain.member.member.dto.MemberDto;
+import com.back.domain.member.member.dto.MemberWithUsernameDto;
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.member.member.service.MemberService;
 import com.back.global.exception.ServiceException;
@@ -15,8 +16,6 @@ import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-
 @RestController
 @RequestMapping("/api/v1/members")
 @RequiredArgsConstructor
@@ -25,6 +24,7 @@ import java.time.LocalDateTime;
 public class ApiV1MemberController {
     private final MemberService memberService;
     private final Rq rq;
+
 
     record MemberJoinReqBody(
             @NotBlank
@@ -68,7 +68,7 @@ public class ApiV1MemberController {
     }
 
     record MemberLoginResBody(
-            MemberDto item, // DTO보고 구현이 된 부분
+            MemberDto item,
             String apiKey,
             String accessToken
     ) {
@@ -89,7 +89,6 @@ public class ApiV1MemberController {
         rq.setCookie("apiKey", member.getApiKey());
         rq.setCookie("accessToken", accessToken);
 
-
         return new RsData<>(
                 "200-1",
                 "%s님 환영합니다.".formatted(member.getName()),
@@ -101,30 +100,28 @@ public class ApiV1MemberController {
         );
     }
 
-    record MemberInfoResBody(
-            int id,
-            LocalDateTime createDate,
-            LocalDateTime modifyDate,
-            String name
-    ) {
-    }
 
-    @GetMapping("/me")
-    public RsData<MemberInfoResBody> me(
-    ) {
-        Member actor = rq.getActor();
+    @DeleteMapping("/logout")
+    public RsData<Void> logout() {
+        rq.deleteCookie("apiKey");
+        rq.deleteCookie("accessToken");
 
         return new RsData<>(
                 "200-1",
-                "%s님의 정보입니다.".formatted(actor.getName()),
-                new MemberInfoResBody(
-                        actor.getId(),
-                        actor.getCreateDate(),
-                        actor.getModifyDate(),
-                        actor.getName()
-                )
+                "로그아웃 되었습니다."
         );
     }
+
+
+    @GetMapping("/me")
+    public MemberWithUsernameDto me() {
+        Member actor = memberService
+                .findById(rq.getActor().getId())
+                .get();
+
+        return new MemberWithUsernameDto(actor);
+    }
+}
 
 //    record MemberInfoResBody(
 //            int id,
@@ -154,16 +151,3 @@ public class ApiV1MemberController {
 //                )
 //        );
 //    }
-
-    @DeleteMapping("/logout")
-    public RsData<Void> logout (){
-        rq.deleteCookie("apiKey");
-
-        return new RsData<>(
-                "200-1",
-                "로그아웃 되었습니다."
-        );
-    }
-
-
-}

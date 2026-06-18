@@ -34,7 +34,6 @@ public class Rq {
 
             apiKey = headerAuthorizationBits[1];
             accessToken = headerAuthorizationBits.length == 3 ? headerAuthorizationBits[2] : "";
-
         } else {
             apiKey = getCookieValue("apiKey", "");
             accessToken = getCookieValue("accessToken", "");
@@ -44,21 +43,33 @@ public class Rq {
             throw new ServiceException("401-1", "로그인 후 이용해주세요.");
 
         Member member = null;
+        boolean isAccessTokenExists = !accessToken.isBlank();
+        boolean isAccessTokenValid = false;
 
-        if (!accessToken.isBlank()) {
+        if (isAccessTokenExists) { // 액세스 토큰 존재 (JWT)
             Map<String, Object> payload = memberService.payload(accessToken);
 
-            if (payload != null) {
+            if (payload != null) { // Claim 데이터가 있을때
                 int id = (int) payload.get("id");
                 String username = (String) payload.get("username");
-                member = new Member(id, username);
+                String name = (String) payload.get("name");
+                member = new Member(id, username, name);
+
+                isAccessTokenValid = true;
             }
         }
 
-        if (member == null) {
+        if (member == null) { // 액세스 토큰이 없을 때
             member = memberService
                     .findByApiKey(apiKey)
                     .orElseThrow(() -> new ServiceException("401-3", "API 키가 유효하지 않습니다."));
+        }
+
+        if (isAccessTokenExists && !isAccessTokenValid) { // 토큰이 있고, 유효하지않을때(만료) -> 재발급
+            String actorAccessToken = memberService.genAccessToken(member); // 재발급
+
+            setCookie("accessToken", actorAccessToken);
+            setHeader("Authorization", actorAccessToken);
         }
 
         return member;
@@ -69,6 +80,16 @@ public class Rq {
                 .ofNullable(req.getHeader(name))
                 .filter(headerValue -> !headerValue.isBlank())
                 .orElse(defaultValue);
+    }
+
+    private void setHeader(String name, String value) {
+        if (value == null) value = "";
+
+        if (value.isBlank()) {
+            req.removeAttribute(name);
+        } else {
+            resp.setHeader(name, value);
+        }
     }
 
     private String getCookieValue(String name, String defaultValue) {
@@ -86,20 +107,21 @@ public class Rq {
     }
 
     public void setCookie(String name, String value) {
-        if(value == null) value = "";
+        if (value == null) value = "";
 
         Cookie cookie = new Cookie(name, value);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
 
-         if(value.isBlank()) {
-             cookie.setMaxAge(0);
-         }
+        // 값이 없다면 해당 쿠키변수를 삭제하라는 뜻
+        if (value.isBlank()) {
+            cookie.setMaxAge(0);
+        }
 
         resp.addCookie(cookie);
     }
 
     public void deleteCookie(String name) {
-        setCookie(name,null);
+        setCookie(name, null);
     }
 }
