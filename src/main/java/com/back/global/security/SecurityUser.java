@@ -14,11 +14,10 @@ public class SecurityUser extends User {
     public SecurityUser(
             int id,
             String username,
-            String password,
             String name,
             Collection<? extends GrantedAuthority> authorities
     ) {
-        super(username, password, authorities);
+        super(username, "", authorities); // 우리의 시나리오(REST API)에서는 이 객체의 비밀번호 필드를 활용할 일이 없다.
         this.id = id;
         this.name = name;
     }
