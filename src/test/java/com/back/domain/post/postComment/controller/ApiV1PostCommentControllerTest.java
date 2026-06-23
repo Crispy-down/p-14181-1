@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -99,20 +100,13 @@ public class ApiV1PostCommentControllerTest {
 
     @Test
     @DisplayName("댓글 삭제")
+    @WithUserDetails("user1")
     void t3() throws Exception {
         int postId = 1;
         int id = 1;
-
-        Post post = postService.findById(postId).get();
-        PostComment postComment = post.findCommentById(id).get();
-
-        Member actor = postComment.getAuthor();
-        String actorapiKey = actor.getApiKey();
-
         ResultActions resultActions = mvc
                 .perform(
                         delete("/api/v1/posts/%d/comments/%d".formatted(postId, id))
-                                .header("Authorization", "Bearer " + actorapiKey)
                 )
                 .andDo(print());
 
@@ -126,20 +120,13 @@ public class ApiV1PostCommentControllerTest {
 
     @Test
     @DisplayName("댓글 수정")
+    @WithUserDetails("user1")
     void t4() throws Exception {
         int postId = 1;
         int id = 1;
-
-        Post post = postService.findById(postId).get();
-        PostComment postComment = post.findCommentById(id).get();
-        
-        Member actor = postComment.getAuthor();
-        String actorapiKey = actor.getApiKey();
-
         ResultActions resultActions = mvc
                 .perform(
                         put("/api/v1/posts/%d/comments/%d".formatted(postId, id))
-                                .header("Authorization", "Bearer " + actorapiKey)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -159,17 +146,14 @@ public class ApiV1PostCommentControllerTest {
 
     @Test
     @DisplayName("댓글 삭제, without permission")
+    @WithUserDetails("user3")
     void t7() throws Exception {
         int postId = 1;
         int id = 1;
 
-        Member actor = memberService.findByUsername("user3").get();
-        String actorApiKey = actor.getApiKey();
-
         ResultActions resultActions = mvc
                 .perform(
                         delete("/api/v1/posts/%d/comments/%d".formatted(postId, id))
-                                .header("Authorization", "Bearer " + actorApiKey)
                 )
                 .andDo(print());
 
@@ -183,17 +167,14 @@ public class ApiV1PostCommentControllerTest {
 
     @Test
     @DisplayName("댓글 수정, without permission")
+    @WithUserDetails("user3")
     void t6() throws Exception {
         int postId = 1;
         int id = 1;
 
-        Member actor = memberService.findByUsername("user3").get();
-        String actorApiKey = actor.getApiKey();
-
         ResultActions resultActions = mvc
                 .perform(
                         put("/api/v1/posts/%d/comments/%d".formatted(postId, id))
-                                .header("Authorization", "Bearer " + actorApiKey)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -213,17 +194,13 @@ public class ApiV1PostCommentControllerTest {
 
     @Test
     @DisplayName("댓글 작성")
+    @WithUserDetails("user1")
     void t5() throws Exception {
         int postId = 1;
-
-        Member actor = memberService.findByUsername("user1").get();
-
-        String actorapiKey = actor.getApiKey();
 
         ResultActions resultActions = mvc
                 .perform(
                         post("/api/v1/posts/%d/comments".formatted(postId))
-                                .header("Authorization", "Bearer " + actorapiKey)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {

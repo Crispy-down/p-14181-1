@@ -5,6 +5,7 @@ import com.back.domain.member.member.service.MemberService;
 import com.back.global.exception.ServiceException;
 import com.back.global.rq.Rq;
 import com.back.global.rsData.RsData;
+import com.back.standard.util.Ut;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,7 +19,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import tools.jackson.databind.ObjectMapper;
 
 
 import java.io.IOException;
@@ -30,7 +30,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CustomAuthenticationFilter extends OncePerRequestFilter {
     private final Rq rq;
-    private final ObjectMapper objectMapper;
     private final MemberService memberService;
 
     @Override
@@ -44,7 +43,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             response.setContentType("application/json");
             response.setStatus(rsData.statusCode());
             response.getWriter().write(
-                    objectMapper.writeValueAsString(rsData)
+                    Ut.json.toString(rsData)
             );
         } catch (Exception e) {
             throw e;
@@ -123,14 +122,12 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             rq.setHeader("Authorization", actorAccessToken);
         }
 
-        Collection<? extends GrantedAuthority> authorities = member.isAdmin() ?
-                List.of(new SimpleGrantedAuthority("ROLE_ADMIN")) : List.of();
 
         UserDetails user = new SecurityUser(
                 member.getId(),
                 member.getUsername(),
                 member.getName(),
-                authorities
+                member.getAuthorities()
         );
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(
