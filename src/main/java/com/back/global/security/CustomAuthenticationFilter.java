@@ -18,7 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.security.core.userdetails.User;
+import tools.jackson.databind.ObjectMapper;
 
 
 import java.io.IOException;
@@ -30,6 +30,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CustomAuthenticationFilter extends OncePerRequestFilter {
     private final Rq rq;
+    private final ObjectMapper objectMapper;
     private final MemberService memberService;
 
     @Override
@@ -42,12 +43,9 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             RsData<Void> rsData = e.getRsData();
             response.setContentType("application/json");
             response.setStatus(rsData.statusCode());
-            response.getWriter().write("""
-                    {
-                        "resultCode": "%s",
-                        "msg": "%s"
-                    }
-                    """.formatted(rsData.resultCode(), rsData.msg()));
+            response.getWriter().write(
+                    objectMapper.writeValueAsString(rsData)
+            );
         } catch (Exception e) {
             throw e;
         }
@@ -124,8 +122,6 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             rq.setCookie("accessToken", actorAccessToken);
             rq.setHeader("Authorization", actorAccessToken);
         }
-
-        rq.setActor(member);
 
         Collection<? extends GrantedAuthority> authorities = member.isAdmin() ?
                 List.of(new SimpleGrantedAuthority("ROLE_ADMIN")) : List.of();
